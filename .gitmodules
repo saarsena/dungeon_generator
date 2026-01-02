@@ -1,0 +1,9 @@
+[submodule "tiling-wfc"]
+	path = tiling-wfc
+	url = https://github.com/saarsena/fast-tiling-wfc.git
+[submodule "godot-cpp"]
+	path = godot-cpp
+	url = https://github.com/godotengine/godot-cpp.git
+[submodule "fast-wfc"]
+	path = fast-wfc
+	url = https://github.com/math-fehr/fast-wfc.git

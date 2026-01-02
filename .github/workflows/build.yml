@@ -1,0 +1,141 @@
+name: Build Multi-Platform
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: windows
+            artifact_name: godot_wfc.dll
+
+          - os: ubuntu-latest
+            platform: linux
+            artifact_name: libgodot_wfc.so
+
+          - os: macos-latest
+            platform: macos
+            artifact_name: libgodot_wfc.dylib
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Set up MSVC (Windows only)
+      if: matrix.os == 'windows-latest'
+      uses: ilammy/msvc-dev-cmd@v1
+
+    - name: Install dependencies (Linux only)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake
+
+    - name: Install dependencies (macOS only)
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install cmake
+
+    - name: Configure CMake
+      run: |
+        mkdir -p build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build
+      run: |
+        cd build
+        cmake --build . --config Release
+
+    - name: List build output (Debug)
+      shell: bash
+      run: |
+        echo "=== Build directory contents ==="
+        find build -type f -name "*.dll" -o -name "*.so" -o -name "*.dylib" || true
+        echo "=== Addons directory contents ==="
+        find addons -type f 2>/dev/null || echo "No addons directory found"
+
+    - name: Prepare artifacts
+      shell: bash
+      run: |
+        mkdir -p artifact/addons/wfc/bin/${{ matrix.platform }}
+
+        # Copy the extension config
+        cp -r addons/wfc/*.gdextension artifact/addons/wfc/ || true
+
+        # Find and copy the built library
+        if [ "${{ matrix.os }}" = "windows-latest" ]; then
+          find build -name "*.dll" -exec cp {} artifact/addons/wfc/bin/${{ matrix.platform }}/ \;
+        elif [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+          find build -name "*.so" -exec cp {} artifact/addons/wfc/bin/${{ matrix.platform }}/ \;
+        elif [ "${{ matrix.os }}" = "macos-latest" ]; then
+          find build -name "*.dylib" -exec cp {} artifact/addons/wfc/bin/${{ matrix.platform }}/ \;
+        fi
+
+        # List what we're uploading
+        echo "=== Artifact contents ==="
+        ls -lR artifact/
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.platform }}-build
+        path: artifact/
+        retention-days: 7
+
+  package:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: Combine artifacts
+      run: |
+        mkdir -p release/addons/wfc
+
+        # Copy .gdextension file
+        cp addons/wfc/*.gdextension release/addons/wfc/
+
+        # Copy all platform binaries
+        mkdir -p release/addons/wfc/bin
+        cp -r artifacts/windows-build/addons/wfc/bin/* release/addons/wfc/bin/ || true
+        cp -r artifacts/linux-build/addons/wfc/bin/* release/addons/wfc/bin/ || true
+        cp -r artifacts/macos-build/addons/wfc/bin/* release/addons/wfc/bin/ || true
+
+        # Show final structure
+        echo "=== Final release structure ==="
+        ls -lR release/
+
+        # Create zip
+        cd release
+        zip -r ../godot-wfc-${{ github.ref_name }}.zip addons/
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: godot-wfc-${{ github.ref_name }}.zip
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
