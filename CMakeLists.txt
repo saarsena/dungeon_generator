@@ -59,6 +59,11 @@ add_library(${PROJECT_NAME} SHARED
     src/bsp_godot.cpp
     src/bsp_godot.h
 
+    # Hybrid dungeon generation
+    hybrid/DungeonBuilder.cpp
+    src/hybrid_godot.cpp
+    src/hybrid_godot.h
+
     # Overlapping WFC generation
     src/overlapping_wfc_godot.cpp
     src/overlapping_wfc_godot.h
@@ -80,6 +85,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 # Include directories
 target_include_directories(${PROJECT_NAME} PRIVATE
     src/
+    hybrid/
+    tiling-wfc/include/
     tiling-wfc/include/
     fast-wfc/src/include/
 )

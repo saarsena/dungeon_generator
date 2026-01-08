@@ -4,6 +4,7 @@
 #include "gdwfc_v2.h"
 #include "walker.h"
 #include "bsp_godot.h"
+#include "hybrid_godot.h"
 #include "overlapping_wfc_godot.h"
 
 #include <gdextension_interface.h>
@@ -35,6 +36,10 @@ void initialize_gdwfc_module(ModuleInitializationLevel p_level) {
     // Register BSP classes
     ClassDB::register_class<BSPResult>();
     ClassDB::register_class<BSPDungeonGenerator>();
+
+    // Register Hybrid classes
+    ClassDB::register_class<HybridResult>();
+    ClassDB::register_class<HybridDungeonGenerator>();
 
     // Register Overlapping WFC classes
     ClassDB::register_class<OverlappingWFCResult>();

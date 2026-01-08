@@ -21,7 +21,7 @@ class_name DungeonPreview
 # ============================================================================
 
 ## Algorithm Selection
-enum Algorithm { WFC, WALKER, BSP, OVERLAPPING_WFC }
+enum Algorithm { WFC, WALKER, BSP, OVERLAPPING_WFC, HYBRID }
 
 @export_group("Generator")
 @export var algorithm: Algorithm = Algorithm.WFC:
@@ -69,6 +69,18 @@ enum Algorithm { WFC, WALKER, BSP, OVERLAPPING_WFC }
 @export_range(1, 5) var bsp_max_depth: int = 4
 @export var bsp_use_seed: bool = false
 @export var bsp_seed: int = 12345
+
+## Hybrid Parameters
+@export_group("Hybrid Settings")
+@export var hybrid_room_count: int = 150
+@export var hybrid_spread_radius: float = 50.0
+@export var hybrid_walker_count: int = 400
+@export var hybrid_grid_width: int = 200
+@export var hybrid_grid_height: int = 150
+@export var hybrid_tile_w: int = 4
+@export var hybrid_tile_h: int = 4
+@export var hybrid_use_seed: bool = false
+@export var hybrid_seed: int = 12345
 
 ## Overlapping WFC Parameters
 @export_group("Overlapping WFC Settings")
@@ -334,6 +346,8 @@ func generate_dungeon() -> void:
 			result = _generate_bsp()
 		Algorithm.OVERLAPPING_WFC:
 			result = _generate_overlapping_wfc()
+		Algorithm.HYBRID:
+			result = _generate_hybrid()
 
 	if result:
 		var elapsed = Time.get_ticks_msec() - start_time
@@ -345,6 +359,16 @@ func generate_dungeon() -> void:
 			populate_tilemap()
 	else:
 		push_error("DungeonPreview: Generation failed")
+
+func _generate_hybrid() -> HybridResult:
+	var hybrid = HybridDungeonGenerator.new()
+	hybrid.room_count = hybrid_room_count
+	hybrid.spread_radius = hybrid_spread_radius
+	hybrid.walker_count = hybrid_walker_count
+	hybrid.set_grid_size(hybrid_grid_width, hybrid_grid_height)
+	hybrid.set_tile_size(hybrid_tile_w, hybrid_tile_h)
+	hybrid.seed = hybrid_seed if hybrid_use_seed else 0
+	return hybrid.generate()
 
 func _generate_walker() -> WalkerResult:
 	var walker = WalkerDungeonGenerator.new()
@@ -573,9 +597,14 @@ func display_result(result: RefCounted, slot: int = 0) -> void:
 			print("DungeonPreview: Added %d floor positions" % floors.size())
 	else:
 		# Try different result types
-		if result.has_method("get_floor_positions"):
+		if result.has_method("get_floors"): # For HybridResult
+			floors = result.get_floors()
+		elif result.has_method("get_floor_positions"):
 			floors = result.get_floor_positions()
-		if result.has_method("get_wall_positions"):
+			
+		if result.has_method("get_walls"): # For HybridResult
+			walls = result.get_walls()
+		elif result.has_method("get_wall_positions"):
 			walls = result.get_wall_positions()
 
 	# Get statistics if available
