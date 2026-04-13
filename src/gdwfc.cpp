@@ -159,7 +159,7 @@ PackedInt32Array GDTilingWFC::run() {
             }
 
             UtilityFunctions::print("WFC succeeded! Output size: ", output_width, "x", output_height);
-            UtilityFunctions::print("  Total neighbor rules provided: ", wfc_neighbors.size());
+            UtilityFunctions::print("  Total neighbor rules provided: ", static_cast<int64_t>(wfc_neighbors.size()));
         } else {
             UtilityFunctions::print("WFC failed - contradiction encountered");
         }
