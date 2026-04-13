@@ -2,6 +2,18 @@
 
 ## [Unreleased] - 2025-10-27
 
+### Changed
+- Code review & cleanup pass:
+  - Untracked the accidentally-committed `.cache/clangd/` index directory (122
+    files) and added it to `.gitignore`.
+  - Stripped trailing whitespace from `src/hybrid_godot.{cpp,h}`.
+  - Removed a duplicate `tiling-wfc/include/` entry in `CMakeLists.txt`.
+  - Promoted the walker `max_attempts` magic numbers (150000 / 50000) into
+    named `constexpr` constants with an explanatory comment.
+  - Deduplicated the `SymmetryType` enum across `gdwfc.h` / `gdwfc_v2.h`
+    via a shared `src/symmetry_types.h` macro. Public GDScript enum API
+    is unchanged.
+
 ### Added
 - **Overlapping WFC Generator**: Complete implementation of pattern-based procedural generation
   - Extract patterns from seed images (any pixel art)
