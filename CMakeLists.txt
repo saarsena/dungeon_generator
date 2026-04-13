@@ -87,7 +87,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     src/
     hybrid/
     tiling-wfc/include/
-    tiling-wfc/include/
     fast-wfc/src/include/
 )
 
