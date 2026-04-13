@@ -18,7 +18,7 @@ private:
     Array links;
     PackedVector2Array floors;
     PackedVector2Array walls;
-    
+
     int grid_width;
     int grid_height;
     int tile_w;
@@ -29,9 +29,9 @@ protected:
 
 public:
     HybridResult();
-    
+
     // Setters (used by generator)
-    void set_data(const std::vector<RoomObj>& p_rooms, 
+    void set_data(const std::vector<RoomObj>& p_rooms,
                  const std::vector<Link>& p_links,
                  const std::vector<Point>& p_floors,
                  const std::vector<Point>& p_walls,
@@ -42,7 +42,7 @@ public:
     Array get_links() const;
     PackedVector2Array get_floors() const;
     PackedVector2Array get_walls() const;
-    
+
     int get_total_tiles() const;
     int get_grid_width() const;
     int get_grid_height() const;
