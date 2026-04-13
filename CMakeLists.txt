@@ -43,6 +43,9 @@ add_subdirectory(godot-cpp)
 
 # Create GDExtension library
 add_library(${PROJECT_NAME} SHARED
+    # Shared headers
+    src/symmetry_types.h
+
     # Original v1 files (keep for backward compatibility)
     src/gdwfc.cpp
     src/gdwfc.h

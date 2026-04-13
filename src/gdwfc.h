@@ -7,6 +7,8 @@
 #include <godot_cpp/variant/packed_int32_array.hpp>
 #include <godot_cpp/core/class_db.hpp>
 
+#include "symmetry_types.h"
+
 using namespace godot;
 
 class GDTilingWFC : public RefCounted {
@@ -14,12 +16,7 @@ class GDTilingWFC : public RefCounted {
 
 public:
     enum SymmetryType {
-        SYMMETRY_X = 0,        // No rotation - 1 orientation
-        SYMMETRY_I = 1,        // 2 orientations (vertical/horizontal)
-        SYMMETRY_BACKSLASH = 2, // 2 orientations (diagonal)
-        SYMMETRY_T = 3,        // 4 orientations (T-shape)
-        SYMMETRY_L = 4,        // 4 orientations (L-shape)
-        SYMMETRY_P = 5         // 8 orientations (fully asymmetric)
+        DG_SYMMETRY_TYPE_VALUES
     };
 
 private:
