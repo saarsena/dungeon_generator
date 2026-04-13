@@ -8,6 +8,15 @@ on:
   pull_request:
     branches: [ main ]
   workflow_dispatch:
+    inputs:
+      create_release:
+        description: "Create a GitHub Release from this run"
+        type: boolean
+        default: false
+      tag_name:
+        description: "Release tag (e.g. v1.0.3) — required when create_release is true"
+        type: string
+        required: false
 
 jobs:
   build:
@@ -18,15 +27,12 @@ jobs:
         include:
           - os: windows-latest
             platform: windows
-            artifact_name: godot_wfc.dll
 
           - os: ubuntu-latest
             platform: linux
-            artifact_name: libgodot_wfc.so
 
           - os: macos-latest
             platform: macos
-            artifact_name: libgodot_wfc.dylib
 
     steps:
     - name: Checkout repository
@@ -60,32 +66,11 @@ jobs:
         cd build
         cmake --build . --config Release
 
-    - name: List build output (Debug)
+    - name: Stage addon for upload
       shell: bash
       run: |
-        echo "=== Build directory contents ==="
-        find build -type f -name "*.dll" -o -name "*.so" -o -name "*.dylib" || true
-        echo "=== Addons directory contents ==="
-        find addons -type f 2>/dev/null || echo "No addons directory found"
-
-    - name: Prepare artifacts
-      shell: bash
-      run: |
-        mkdir -p artifact/addons/wfc/bin/${{ matrix.platform }}
-
-        # Copy the extension config
-        cp -r addons/wfc/*.gdextension artifact/addons/wfc/ || true
-
-        # Find and copy the built library
-        if [ "${{ matrix.os }}" = "windows-latest" ]; then
-          find build -name "*.dll" -exec cp {} artifact/addons/wfc/bin/${{ matrix.platform }}/ \;
-        elif [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-          find build -name "*.so" -exec cp {} artifact/addons/wfc/bin/${{ matrix.platform }}/ \;
-        elif [ "${{ matrix.os }}" = "macos-latest" ]; then
-          find build -name "*.dylib" -exec cp {} artifact/addons/wfc/bin/${{ matrix.platform }}/ \;
-        fi
-
-        # List what we're uploading
+        mkdir -p artifact
+        cp -r build/deploy/addons artifact/
         echo "=== Artifact contents ==="
         ls -lR artifact/
 
@@ -99,42 +84,54 @@ jobs:
   package:
     needs: build
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: >-
+      startsWith(github.ref, 'refs/tags/v') ||
+      (github.event_name == 'workflow_dispatch' && inputs.create_release)
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+
+    - name: Resolve release tag
+      id: meta
+      shell: bash
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          TAG="${{ inputs.tag_name }}"
+          if [ -z "$TAG" ]; then
+            echo "::error::tag_name input is required when create_release=true"
+            exit 1
+          fi
+        else
+          TAG="${{ github.ref_name }}"
+        fi
+        echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+        echo "zip=dungeon-generator-${TAG}.zip" >> "$GITHUB_OUTPUT"
 
     - name: Download all artifacts
       uses: actions/download-artifact@v4
       with:
         path: artifacts
 
-    - name: Combine artifacts
+    - name: Merge platform artifacts into release tree
+      shell: bash
       run: |
-        mkdir -p release/addons/wfc
-
-        # Copy .gdextension file
-        cp addons/wfc/*.gdextension release/addons/wfc/
-
-        # Copy all platform binaries
-        mkdir -p release/addons/wfc/bin
-        cp -r artifacts/windows-build/addons/wfc/bin/* release/addons/wfc/bin/ || true
-        cp -r artifacts/linux-build/addons/wfc/bin/* release/addons/wfc/bin/ || true
-        cp -r artifacts/macos-build/addons/wfc/bin/* release/addons/wfc/bin/ || true
-
-        # Show final structure
-        echo "=== Final release structure ==="
-        ls -lR release/
-
-        # Create zip
+        mkdir -p release
+        # Any one artifact has the shared addon files; use linux-build as source of truth.
+        cp -r artifacts/linux-build/addons release/
+        # Overlay each platform's bin/ directory onto the shared tree.
+        cp -rn artifacts/windows-build/addons/dungeon_generator/bin/. release/addons/dungeon_generator/bin/
+        cp -rn artifacts/macos-build/addons/dungeon_generator/bin/.   release/addons/dungeon_generator/bin/
+        echo "=== Final release tree ==="
+        find release -type f
         cd release
-        zip -r ../godot-wfc-${{ github.ref_name }}.zip addons/
+        zip -r "../${{ steps.meta.outputs.zip }}" addons/
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
-        files: godot-wfc-${{ github.ref_name }}.zip
+        tag_name: ${{ steps.meta.outputs.tag }}
+        files: ${{ steps.meta.outputs.zip }}
         draft: false
         prerelease: false
       env:
