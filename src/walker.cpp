@@ -8,6 +8,13 @@
 
 using namespace godot;
 
+// Upper bounds on walker iterations. These cap the main random-walk loop so
+// pathological seeds cannot spin forever; the overlap-enabled path needs a
+// higher ceiling because walkers can revisit tiles and make slower progress
+// toward the target floor count.
+static constexpr int kMaxAttemptsOverlap = 150000;
+static constexpr int kMaxAttemptsNoOverlap = 50000;
+
 // ============================================================================
 // WalkerResult Implementation
 // ============================================================================
@@ -273,7 +280,7 @@ void WalkerDungeonGenerator::simulate_walkers() {
     }
 
     int attempts = 0;
-    const int max_attempts = allow_overlap ? 150000 : 50000;
+    const int max_attempts = allow_overlap ? kMaxAttemptsOverlap : kMaxAttemptsNoOverlap;
 
     while (floor_tiles.size() < (size_t)total_floor_count && attempts++ < max_attempts) {
         if (allow_overlap) {
