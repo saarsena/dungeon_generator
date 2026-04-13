@@ -1,5 +1,6 @@
 #include "DungeonBuilder.h"
 #include <algorithm>
+#include <numeric>  // for std::iota
 #include <map>
 #include <set>
 #include <iostream>

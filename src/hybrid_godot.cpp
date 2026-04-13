@@ -12,12 +12,12 @@ HybridResult::HybridResult() {
     tile_h = 0;
 }
 
-void HybridResult::set_data(const std::vector<RoomObj>& p_rooms, 
+void HybridResult::set_data(const std::vector<RoomObj>& p_rooms,
                            const std::vector<Link>& p_links,
                            const std::vector<Point>& p_floors,
                            const std::vector<Point>& p_walls,
                            const GenSettings& p_cfg) {
-    
+
     // Convert Rooms
     rooms.clear();
     for (const auto& r : p_rooms) {
@@ -66,8 +66,8 @@ Array HybridResult::get_links() const { return links; }
 PackedVector2Array HybridResult::get_floors() const { return floors; }
 PackedVector2Array HybridResult::get_walls() const { return walls; }
 
-int HybridResult::get_total_tiles() const { 
-    return floors.size() + walls.size(); 
+int HybridResult::get_total_tiles() const {
+    return floors.size() + walls.size();
 }
 
 int HybridResult::get_grid_width() const { return grid_width; }
@@ -110,9 +110,9 @@ float HybridDungeonGenerator::get_spread_radius() const { return settings.spread
 void HybridDungeonGenerator::set_walker_count(int count) { settings.walkerCount = count; }
 int HybridDungeonGenerator::get_walker_count() const { return settings.walkerCount; }
 
-void HybridDungeonGenerator::set_grid_size(int width, int height) { 
-    settings.gridWidth = width; 
-    settings.gridHeight = height; 
+void HybridDungeonGenerator::set_grid_size(int width, int height) {
+    settings.gridWidth = width;
+    settings.gridHeight = height;
 }
 void HybridDungeonGenerator::set_grid_width(int width) { settings.gridWidth = width; }
 void HybridDungeonGenerator::set_grid_height(int height) { settings.gridHeight = height; }
@@ -120,9 +120,9 @@ void HybridDungeonGenerator::set_grid_height(int height) { settings.gridHeight =
 int HybridDungeonGenerator::get_grid_width() const { return settings.gridWidth; }
 int HybridDungeonGenerator::get_grid_height() const { return settings.gridHeight; }
 
-void HybridDungeonGenerator::set_tile_size(int w, int h) { 
-    settings.tileW = w; 
-    settings.tileH = h; 
+void HybridDungeonGenerator::set_tile_size(int w, int h) {
+    settings.tileW = w;
+    settings.tileH = h;
 }
 void HybridDungeonGenerator::set_tile_w(int w) { settings.tileW = w; }
 void HybridDungeonGenerator::set_tile_h(int h) { settings.tileH = h; }
@@ -138,7 +138,7 @@ Ref<HybridResult> HybridDungeonGenerator::generate() {
     builder.init(settings);
 
     // Run until complete
-    int max_steps = 100000; 
+    int max_steps = 100000;
     while (!builder.isComplete() && max_steps > 0) {
         builder.step();
         max_steps--;
@@ -146,13 +146,13 @@ Ref<HybridResult> HybridDungeonGenerator::generate() {
 
     Ref<HybridResult> res;
     res.instantiate();
-    
+
     res->set_data(
         builder.getRooms(),
         builder.getLinks(),
         builder.getFloors(),
         builder.getWalls(),
-        settings 
+        settings
     );
 
     return res;
@@ -160,16 +160,16 @@ Ref<HybridResult> HybridDungeonGenerator::generate() {
 
 void HybridDungeonGenerator::_bind_methods() {
     ClassDB::bind_method(D_METHOD("generate"), &HybridDungeonGenerator::generate);
-    
+
     ClassDB::bind_method(D_METHOD("set_room_count", "count"), &HybridDungeonGenerator::set_room_count);
     ClassDB::bind_method(D_METHOD("get_room_count"), &HybridDungeonGenerator::get_room_count);
-    
+
     ClassDB::bind_method(D_METHOD("set_spread_radius", "radius"), &HybridDungeonGenerator::set_spread_radius);
     ClassDB::bind_method(D_METHOD("get_spread_radius"), &HybridDungeonGenerator::get_spread_radius);
-    
+
     ClassDB::bind_method(D_METHOD("set_walker_count", "count"), &HybridDungeonGenerator::set_walker_count);
     ClassDB::bind_method(D_METHOD("get_walker_count"), &HybridDungeonGenerator::get_walker_count);
-    
+
     ClassDB::bind_method(D_METHOD("set_grid_size", "width", "height"), &HybridDungeonGenerator::set_grid_size);
     ClassDB::bind_method(D_METHOD("set_grid_width", "width"), &HybridDungeonGenerator::set_grid_width);
     ClassDB::bind_method(D_METHOD("set_grid_height", "height"), &HybridDungeonGenerator::set_grid_height);
@@ -181,7 +181,7 @@ void HybridDungeonGenerator::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_tile_h", "h"), &HybridDungeonGenerator::set_tile_h);
     ClassDB::bind_method(D_METHOD("get_tile_w"), &HybridDungeonGenerator::get_tile_w);
     ClassDB::bind_method(D_METHOD("get_tile_h"), &HybridDungeonGenerator::get_tile_h);
-    
+
     ClassDB::bind_method(D_METHOD("set_seed", "seed"), &HybridDungeonGenerator::set_seed);
     ClassDB::bind_method(D_METHOD("get_seed"), &HybridDungeonGenerator::get_seed);
 
@@ -189,11 +189,11 @@ void HybridDungeonGenerator::_bind_methods() {
     ADD_PROPERTY(PropertyInfo(Variant::INT, "room_count"), "set_room_count", "get_room_count");
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "spread_radius"), "set_spread_radius", "get_spread_radius");
     ADD_PROPERTY(PropertyInfo(Variant::INT, "walker_count"), "set_walker_count", "get_walker_count");
-    
+
     ADD_GROUP("Grid", "grid_");
     ADD_PROPERTY(PropertyInfo(Variant::INT, "grid_width"), "set_grid_width", "get_grid_width");
     ADD_PROPERTY(PropertyInfo(Variant::INT, "grid_height"), "set_grid_height", "get_grid_height");
-    
+
     ADD_GROUP("Tile", "tile_");
     ADD_PROPERTY(PropertyInfo(Variant::INT, "tile_w"), "set_tile_w", "get_tile_w");
     ADD_PROPERTY(PropertyInfo(Variant::INT, "tile_h"), "set_tile_h", "get_tile_h");

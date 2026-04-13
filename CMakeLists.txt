@@ -43,6 +43,9 @@ add_subdirectory(godot-cpp)
 
 # Create GDExtension library
 add_library(${PROJECT_NAME} SHARED
+    # Shared headers
+    src/symmetry_types.h
+
     # Original v1 files (keep for backward compatibility)
     src/gdwfc.cpp
     src/gdwfc.h
@@ -86,7 +89,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 target_include_directories(${PROJECT_NAME} PRIVATE
     src/
     hybrid/
-    tiling-wfc/include/
     tiling-wfc/include/
     fast-wfc/src/include/
 )
